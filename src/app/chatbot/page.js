@@ -1,6 +1,6 @@
 "use client";
 
-import PatientAssistantBot from "@/components/ui/chatbot";
+import PatientAssistantBot from "@/components/ui/Chatbot"; // ⚠️ ensure file is Chatbot.jsx (case sensitive)
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MessageCircle, Activity } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -50,6 +50,7 @@ export default function ChatbotPage() {
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {/* Feature Cards */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -136,7 +137,7 @@ export default function ChatbotPage() {
             prompts and type your responses to get the help you need.
           </p>
           <div className="text-sm text-gray-500">
-            💡 Tip: You can type "menu" at any time to return to the main
+            💡 Tip: You can type &quot;menu&quot; at any time to return to the main
             options
           </div>
         </div>
