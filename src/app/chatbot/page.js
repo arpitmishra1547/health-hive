@@ -1,6 +1,6 @@
 "use client";
 
-import PatientAssistantBot from "@/components/ui/Chatbot"; // ⚠️ ensure file is Chatbot.jsx (case sensitive)
+import PatientAssistantBot from "@/components/ui/chatbot"; // ⚠️ ensure file is Chatbot.jsx (case sensitive)
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MessageCircle, Activity } from "lucide-react";
 import { useRouter } from "next/navigation";
