@@ -11,7 +11,7 @@ import {
   Facebook,
   Twitter,
   Instagram,
-  Hospital,
+  Activity,
   Clock,
   Smartphone,
   Lock,
@@ -21,6 +21,7 @@ import {
   Star,
   Menu,
   X,
+  MessageCircle,
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import Image from 'next/image'
@@ -57,8 +58,8 @@ export default function SmartHospitalLandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <Hospital className="w-8 h-8 text-blue-600" />
-              <h1 className="text-xl font-bold text-gray-900">SmartCare Hospital</h1>
+              <Activity className="w-8 h-8 text-blue-600" />
+              <h1 className="text-xl font-bold text-gray-900">Health-Hive</h1>
             </div>
 
             {/* Desktop Navigation */}
@@ -71,6 +72,10 @@ export default function SmartHospitalLandingPage() {
               </a>
               <a href="#services" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
                 Services
+              </a>
+              <a href="/chatbot" className="text-green-600 hover:text-green-700 font-medium transition-colors flex items-center gap-1">
+                <MessageCircle className="w-4 h-4" />
+                AI Assistant
               </a>
               <a href="#contact" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
                 Contact
@@ -86,13 +91,13 @@ export default function SmartHospitalLandingPage() {
 
                 {showLoginOptions && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border py-2 z-10">
-                    <a href="/patient/login" className="block px-4 py-2 text-gray-700 hover:bg-gray-50">
+                    <a href="/patient/login" className="block px-4 py-2 text-gray-700 hover:bg-blue-50">
                       Patient Login
                     </a>
-                    <a href="/doctor/login" className="block px-4 py-2 text-gray-700 hover:bg-gray-50">
+                    <a href="/doctor/login" className="block px-4 py-2 text-gray-700 hover:bg-green-50">
                       Doctor Login
                     </a>
-                    <a href="/authority/login" className="block px-4 py-2 text-gray-700 hover:bg-gray-50">
+                    <a href="/authority/login" className="block px-4 py-2 text-gray-700 hover:bg-purple-50">
                       Authority Login
                     </a>
                   </div>
@@ -121,6 +126,10 @@ export default function SmartHospitalLandingPage() {
                 <a href="#services" className="text-gray-600 hover:text-blue-600 font-medium">
                   Services
                 </a>
+                <a href="/chatbot" className="text-green-600 hover:text-green-700 font-medium flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4" />
+                  AI Assistant
+                </a>
                 <a href="#contact" className="text-gray-600 hover:text-blue-600 font-medium">
                   Contact
                 </a>
@@ -140,7 +149,7 @@ export default function SmartHospitalLandingPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="animate-on-scroll opacity-0 transition-all duration-1000">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Smart Hospital. <br />
+              Digital Health Hub. <br />
               <span className="text-blue-600">Smarter Healthcare.</span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed">
@@ -165,7 +174,7 @@ export default function SmartHospitalLandingPage() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-gray-600 text-gray-600 hover:bg-gray-50 px-8 py-4 text-lg bg-transparent"
+                className="border-purple-600 text-purple-600 hover:bg-purple-50 px-8 py-4 text-lg bg-transparent"
                 onClick={() => (window.location.href = '/authority/login')}
               >
                 <Shield className="w-5 h-5 mr-2" />
@@ -180,7 +189,7 @@ export default function SmartHospitalLandingPage() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-on-scroll opacity-0">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose SmartCare?</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose Health-Hive?</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Experience healthcare like never before with our innovative digital solutions
             </p>
@@ -190,10 +199,10 @@ export default function SmartHospitalLandingPage() {
             <Card className="animate-on-scroll opacity-0 hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
               <CardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Hospital className="w-8 h-8 text-blue-600" />
+                  <Activity className="w-8 h-8 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">No Waiting Lines</h3>
-                <p className="text-gray-600">
+                <h3 className="text-xl font-semibold text-gray-200 mb-4">No Waiting Lines</h3>
+                <p className="text-gray-400">
                   Digital OPD token system eliminates long queues and saves your valuable time.
                 </p>
               </CardContent>
@@ -204,8 +213,8 @@ export default function SmartHospitalLandingPage() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Clock className="w-8 h-8 text-green-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Doctor Availability</h3>
-                <p className="text-gray-600">
+                <h3 className="text-xl font-semibold text-gray-200 mb-4">Doctor Availability</h3>
+                <p className="text-gray-400">
                   Real-time schedule updates help you plan your visit at the perfect time.
                 </p>
               </CardContent>
@@ -216,8 +225,8 @@ export default function SmartHospitalLandingPage() {
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Smartphone className="w-8 h-8 text-purple-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Patient-Friendly</h3>
-                <p className="text-gray-600">Easy registration and appointment booking from anywhere, anytime.</p>
+                <h3 className="text-xl font-semibold text-gray-200 mb-4">Patient-Friendly</h3>
+                <p className="text-gray-400">Easy registration and appointment booking from anywhere, anytime.</p>
               </CardContent>
             </Card>
 
@@ -226,8 +235,8 @@ export default function SmartHospitalLandingPage() {
                 <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Lock className="w-8 h-8 text-orange-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Secure & Paperless</h3>
-                <p className="text-gray-600">Safe, eco-friendly digital records with bank-level security.</p>
+                <h3 className="text-xl font-semibold text-gray-200 mb-4">Secure & Paperless</h3>
+                <p className="text-gray-400">Safe, eco-friendly digital records with bank-level security.</p>
               </CardContent>
             </Card>
           </div>
@@ -235,7 +244,7 @@ export default function SmartHospitalLandingPage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-on-scroll opacity-0">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
@@ -297,7 +306,7 @@ export default function SmartHospitalLandingPage() {
             <div className="animate-on-scroll opacity-0">
               <h2 className="text-4xl font-bold text-gray-900 mb-6">Our Vision for Digital Healthcare</h2>
               <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                At SmartCare Hospital, we believe healthcare should be accessible, efficient, and patient-centered. Our
+                At Health-Hive, we believe healthcare should be accessible, efficient, and patient-centered. Our
                 digital transformation initiative eliminates traditional barriers and creates a seamless experience for
                 patients, doctors, and healthcare administrators.
               </p>
@@ -335,7 +344,7 @@ export default function SmartHospitalLandingPage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-on-scroll opacity-0">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">What Our Users Say</h2>
@@ -443,7 +452,7 @@ export default function SmartHospitalLandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold" onClick={() => window.location.href = '/patient/login'}>
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-100 px-8 py-4 text-lg font-semibold" onClick={() => window.location.href = '/patient/login'}>
                 <User className="w-5 h-5 mr-2" />
                 Patient Login
               </Button>
@@ -477,8 +486,8 @@ export default function SmartHospitalLandingPage() {
             {/* Hospital Info */}
             <div className="md:col-span-2">
               <div className="flex items-center space-x-2 mb-6">
-                <Hospital className="w-8 h-8 text-blue-400" />
-                <h3 className="text-2xl font-bold">SmartCare Hospital</h3>
+                <Activity className="w-8 h-8 text-blue-400" />
+                <h3 className="text-2xl font-bold">Health-Hive</h3>
               </div>
               <p className="text-gray-300 mb-6 leading-relaxed">
                 Leading the digital transformation in healthcare with innovative solutions that prioritize patient care
@@ -521,19 +530,19 @@ export default function SmartHospitalLandingPage() {
               <div className="flex space-x-4">
                 <a
                   href="#"
-                  className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-gray-300 hover:text-blue-400 hover:bg-gray-700 transition-colors"
+                  className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-slate-300 hover:text-blue-400 hover:bg-slate-700 transition-colors"
                 >
                   <Facebook className="w-5 h-5" />
                 </a>
                 <a
                   href="#"
-                  className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-gray-300 hover:text-blue-400 hover:bg-gray-700 transition-colors"
+                  className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-slate-300 hover:text-blue-400 hover:bg-slate-700 transition-colors"
                 >
                   <Twitter className="w-5 h-5" />
                 </a>
                 <a
                   href="#"
-                  className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-gray-300 hover:text-blue-400 hover:bg-gray-700 transition-colors"
+                  className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-slate-300 hover:text-blue-400 hover:bg-slate-700 transition-colors"
                 >
                   <Instagram className="w-5 h-5" />
                 </a>
@@ -542,7 +551,7 @@ export default function SmartHospitalLandingPage() {
           </div>
 
           <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 SmartCare Hospital. All rights reserved. | Privacy Policy | Terms of Service</p>
+            <p>&copy; 2024 Health-Hive. All rights reserved. | Privacy Policy | Terms of Service</p>
           </div>
         </div>
       </footer>
