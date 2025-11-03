@@ -24,9 +24,11 @@ import {
   MessageCircle,
 } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useTranslation } from 'react-i18next'
 import Image from 'next/image'
 
 export default function SmartHospitalLandingPage() {
+  const { t } = useTranslation()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [showLoginOptions, setShowLoginOptions] = useState(false)
 
@@ -64,21 +66,19 @@ export default function SmartHospitalLandingPage() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#home" className="text-gray-900 hover:text-blue-600 font-medium transition-colors">
-                Home
-              </a>
+              <a href="#home" className="text-gray-900 hover:text-blue-600 font-medium transition-colors">{t('nav.home')}</a>
               <a href="#about" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
-                About
+                {t('nav.about')}
               </a>
               <a href="#services" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
-                Services
+                {t('nav.services')}
               </a>
               <a href="/chatbot" className="text-green-600 hover:text-green-700 font-medium transition-colors flex items-center gap-1">
                 <MessageCircle className="w-4 h-4" />
-                AI Assistant
+                {t('nav.ai')}
               </a>
               <a href="#contact" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
-                Contact
+                {t('nav.contact')}
               </a>
 
               <div className="relative">
@@ -86,7 +86,7 @@ export default function SmartHospitalLandingPage() {
                   onClick={() => setShowLoginOptions(!showLoginOptions)}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6"
                 >
-                  Login
+                  {t('nav.login')}
                 </Button>
 
                 {showLoginOptions && (
@@ -117,23 +117,21 @@ export default function SmartHospitalLandingPage() {
           {isMenuOpen && (
             <div className="md:hidden py-4 border-t">
               <div className="flex flex-col space-y-4">
-                <a href="#home" className="text-gray-900 hover:text-blue-600 font-medium">
-                  Home
-                </a>
+                <a href="#home" className="text-gray-900 hover:text-blue-600 font-medium">{t('nav.home')}</a>
                 <a href="#about" className="text-gray-600 hover:text-blue-600 font-medium">
-                  About
+                  {t('nav.about')}
                 </a>
                 <a href="#services" className="text-gray-600 hover:text-blue-600 font-medium">
-                  Services
+                  {t('nav.services')}
                 </a>
                 <a href="/chatbot" className="text-green-600 hover:text-green-700 font-medium flex items-center gap-2">
                   <MessageCircle className="w-4 h-4" />
-                  AI Assistant
+                  {t('nav.ai')}
                 </a>
                 <a href="#contact" className="text-gray-600 hover:text-blue-600 font-medium">
-                  Contact
+                  {t('nav.contact')}
                 </a>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white w-full">Login</Button>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white w-full">{t('nav.login')}</Button>
               </div>
             </div>
           )}
@@ -149,18 +147,17 @@ export default function SmartHospitalLandingPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="animate-on-scroll opacity-0 transition-all duration-1000">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Digital Health Hub. <br />
-              <span className="text-blue-600">Smarter Healthcare.</span>
+              {t('hero.title1')} <br />
+              <span className="text-blue-600">{t('hero.title2')}</span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed">
-              No waiting lines, digital token system, and seamless hospital experience. Experience the future of
-              healthcare management today.
+              {t('hero.subtitle')}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
               <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg" onClick={() => window.location.href = '/patient/login'}>
                 <User className="w-5 h-5 mr-2" />
-                Patient Login
+                {t('btn.patientLogin')}
               </Button>
               <Button
                 size="lg"
@@ -169,7 +166,7 @@ export default function SmartHospitalLandingPage() {
                 onClick={() => window.location.href = '/doctor/login'}
               >
                 <Stethoscope className="w-5 h-5 mr-2" />
-                Doctor Login
+                {t('btn.doctorLogin')}
               </Button>
               <Button
                 size="lg"
@@ -178,7 +175,7 @@ export default function SmartHospitalLandingPage() {
                 onClick={() => (window.location.href = '/authority/login')}
               >
                 <Shield className="w-5 h-5 mr-2" />
-                Authority Login
+                {t('btn.authorityLogin')}
               </Button>
             </div>
           </div>
@@ -189,10 +186,8 @@ export default function SmartHospitalLandingPage() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-on-scroll opacity-0">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose Health-Hive?</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Experience healthcare like never before with our innovative digital solutions
-            </p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">{t('features.why')}</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">{t('features.whyDesc')}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
@@ -201,10 +196,8 @@ export default function SmartHospitalLandingPage() {
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Activity className="w-8 h-8 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-200 mb-4">No Waiting Lines</h3>
-                <p className="text-gray-400">
-                  Digital OPD token system eliminates long queues and saves your valuable time.
-                </p>
+                <h3 className="text-xl font-semibold text-gray-200 mb-4">{t('feature.noLines.title')}</h3>
+                <p className="text-gray-400">{t('feature.noLines.desc')}</p>
               </CardContent>
             </Card>
 
@@ -213,10 +206,8 @@ export default function SmartHospitalLandingPage() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Clock className="w-8 h-8 text-green-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-200 mb-4">Doctor Availability</h3>
-                <p className="text-gray-400">
-                  Real-time schedule updates help you plan your visit at the perfect time.
-                </p>
+                <h3 className="text-xl font-semibold text-gray-200 mb-4">{t('feature.availability.title')}</h3>
+                <p className="text-gray-400">{t('feature.availability.desc')}</p>
               </CardContent>
             </Card>
 
@@ -225,8 +216,8 @@ export default function SmartHospitalLandingPage() {
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Smartphone className="w-8 h-8 text-purple-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-200 mb-4">Patient-Friendly</h3>
-                <p className="text-gray-400">Easy registration and appointment booking from anywhere, anytime.</p>
+                <h3 className="text-xl font-semibold text-gray-200 mb-4">{t('feature.friendly.title')}</h3>
+                <p className="text-gray-400">{t('feature.friendly.desc')}</p>
               </CardContent>
             </Card>
 
@@ -235,8 +226,8 @@ export default function SmartHospitalLandingPage() {
                 <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Lock className="w-8 h-8 text-orange-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-200 mb-4">Secure & Paperless</h3>
-                <p className="text-gray-400">Safe, eco-friendly digital records with bank-level security.</p>
+                <h3 className="text-xl font-semibold text-gray-200 mb-4">{t('feature.secure.title')}</h3>
+                <p className="text-gray-400">{t('feature.secure.desc')}</p>
               </CardContent>
             </Card>
           </div>
@@ -247,8 +238,8 @@ export default function SmartHospitalLandingPage() {
       <section className="py-20 bg-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-on-scroll opacity-0">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Simple steps to experience smarter healthcare</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">{t('how.title')}</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">{t('how.subtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
@@ -259,8 +250,8 @@ export default function SmartHospitalLandingPage() {
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <UserPlus className="w-6 h-6 text-blue-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Register/Login</h3>
-              <p className="text-gray-600">Create your account or login to access the system</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('how.step1.title')}</h3>
+              <p className="text-gray-600">{t('how.step1.desc')}</p>
             </div>
 
             <div className="text-center animate-on-scroll opacity-0">
@@ -270,8 +261,8 @@ export default function SmartHospitalLandingPage() {
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Calendar className="w-6 h-6 text-green-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Get Your Token</h3>
-              <p className="text-gray-600">Book appointment and get digital token before reaching hospital</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('how.step2.title')}</h3>
+              <p className="text-gray-600">{t('how.step2.desc')}</p>
             </div>
 
             <div className="text-center animate-on-scroll opacity-0">
@@ -281,8 +272,8 @@ export default function SmartHospitalLandingPage() {
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Clock className="w-6 h-6 text-purple-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Visit at Expected Time</h3>
-              <p className="text-gray-600">Arrive at your scheduled time and skip the waiting lines</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('how.step3.title')}</h3>
+              <p className="text-gray-600">{t('how.step3.desc')}</p>
             </div>
 
             <div className="text-center animate-on-scroll opacity-0">
@@ -292,8 +283,8 @@ export default function SmartHospitalLandingPage() {
               <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FileText className="w-6 h-6 text-orange-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Digital Records</h3>
-              <p className="text-gray-600">Doctor updates your records digitally for future reference</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('how.step4.title')}</h3>
+              <p className="text-gray-600">{t('how.step4.desc')}</p>
             </div>
           </div>
         </div>
@@ -445,16 +436,13 @@ export default function SmartHospitalLandingPage() {
       <section className="py-20 bg-gradient-to-r from-blue-600 to-green-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="animate-on-scroll opacity-0">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Ready for Smarter Healthcare?</h2>
-            <p className="text-xl text-blue-100 mb-12 max-w-2xl mx-auto">
-              Join thousands of patients, doctors, and healthcare professionals who have already transformed their
-              healthcare experience.
-            </p>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">{t('cta.title')}</h2>
+            <p className="text-xl text-blue-100 mb-12 max-w-2xl mx-auto">{t('cta.subtitle')}</p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-100 px-8 py-4 text-lg font-semibold" onClick={() => window.location.href = '/patient/login'}>
                 <User className="w-5 h-5 mr-2" />
-                Patient Login
+                {t('btn.patientLogin')}
               </Button>
               <Button
                 size="lg"
@@ -463,7 +451,7 @@ export default function SmartHospitalLandingPage() {
                 onClick={() => window.location.href = '/doctor/login'}
               >
                 <Stethoscope className="w-5 h-5 mr-2" />
-                Doctor Login
+                {t('btn.doctorLogin')}
               </Button>
               <Button
                 size="lg"
@@ -472,7 +460,7 @@ export default function SmartHospitalLandingPage() {
                 onClick={() => (window.location.href = '/authority/login')}
               >
                 <Shield className="w-5 h-5 mr-2" />
-                Authority Login
+                {t('btn.authorityLogin')}
               </Button>
             </div>
           </div>
@@ -507,26 +495,18 @@ export default function SmartHospitalLandingPage() {
 
             {/* Quick Links */}
             <div>
-              <h4 className="text-lg font-semibold mb-6">Quick Links</h4>
+              <h4 className="text-lg font-semibold mb-6">{t('footer.quickLinks')}</h4>
               <div className="space-y-3">
-                <a href="#home" className="block text-gray-300 hover:text-blue-400 transition-colors">
-                  Home
-                </a>
-                <a href="#about" className="block text-gray-300 hover:text-blue-400 transition-colors">
-                  About Us
-                </a>
-                <a href="#services" className="block text-gray-300 hover:text-blue-400 transition-colors">
-                  Our Services
-                </a>
-                <a href="#contact" className="block text-gray-300 hover:text-blue-400 transition-colors">
-                  Contact Us
-                </a>
+                <a href="#home" className="block text-gray-300 hover:text-blue-400 transition-colors">{t('footer.home')}</a>
+                <a href="#about" className="block text-gray-300 hover:text-blue-400 transition-colors">{t('footer.about')}</a>
+                <a href="#services" className="block text-gray-300 hover:text-blue-400 transition-colors">{t('footer.services')}</a>
+                <a href="#contact" className="block text-gray-300 hover:text-blue-400 transition-colors">{t('footer.contact')}</a>
               </div>
             </div>
 
             {/* Social Media */}
             <div>
-              <h4 className="text-lg font-semibold mb-6">Follow Us</h4>
+              <h4 className="text-lg font-semibold mb-6">{t('footer.follow')}</h4>
               <div className="flex space-x-4">
                 <a
                   href="#"

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { 
@@ -18,6 +19,7 @@ import {
 } from "lucide-react"
 
 export default function PatientAssistantBot() {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [currentInput, setCurrentInput] = useState('')
@@ -36,18 +38,18 @@ export default function PatientAssistantBot() {
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      // Initial welcome message
-      addBotMessage(`👋 Welcome to Health-Hive Patient Assistant Bot.
+      // Initial welcome message (translated)
+      addBotMessage(`👋 ${t('bot.greeting')}
 
-Please choose an option:
-1️⃣ Register as Patient
-2️⃣ My Token Number
-3️⃣ Appointment Time
-4️⃣ Doctor & OPD Info
-5️⃣ Hospital Location / Distance
-6️⃣ Help / FAQs
+${t('bot.chooseOption')}
+1️⃣ ${t('menu.register')}
+2️⃣ ${t('menu.token')}
+3️⃣ ${t('menu.appointment')}
+4️⃣ ${t('menu.doctors')}
+5️⃣ ${t('menu.location')} / Distance
+6️⃣ ${t('menu.help')}
 
-Please type the number (1-6) of your choice.`)
+${t('bot.typeNumber')}`)
     }
   }, [isOpen])
 
@@ -72,16 +74,17 @@ Please type the number (1-6) of your choice.`)
   const resetConversation = () => {
     setConversationState('main_menu')
     setUserData({})
-    addBotMessage(`👋 Welcome back! Please choose an option:
+    addBotMessage(`👋 ${t('bot.greeting')}
 
-1️⃣ Register as Patient
-2️⃣ My Token Number
-3️⃣ Appointment Time
-4️⃣ Doctor & OPD Info
-5️⃣ Hospital Location / Distance
-6️⃣ Help / FAQs
+${t('bot.chooseOption')}
+1️⃣ ${t('menu.register')}
+2️⃣ ${t('menu.token')}
+3️⃣ ${t('menu.appointment')}
+4️⃣ ${t('menu.doctors')}
+5️⃣ ${t('menu.location')} / Distance
+6️⃣ ${t('menu.help')}
 
-Please type the number (1-6) of your choice.`)
+${t('bot.typeNumber')}`)
   }
 
   const handleMainMenu = (input) => {
@@ -90,7 +93,7 @@ Please type the number (1-6) of your choice.`)
     switch(choice) {
       case '1':
         setConversationState('register_name')
-        addBotMessage('📝 Let\'s start your registration. Please enter your Full Name:')
+        addBotMessage(`📝 ${t('reg.start')}`)
         break
       case '2':
         setConversationState('token_phone')
@@ -123,11 +126,11 @@ Please type the number (1-6) of your choice.`)
       case 'register_name':
         setUserData(prev => ({ ...prev, fullName: input }))
         setConversationState('register_dob')
-        addBotMessage('📅 Please enter your Date of Birth (DD/MM/YYYY):')
+        addBotMessage(`📅 ${t('reg.askDob')}`)
         break
       case 'register_dob':
         if (!/^\d{2}\/\d{2}\/\d{4}$/.test(input)) {
-          addBotMessage('❌ Please enter date in DD/MM/YYYY format (e.g., 15/08/1990):')
+          addBotMessage(`❌ ${t('error.invalidDob')}`)
           return
         }
         const [day, month, year] = input.split('/')
@@ -135,47 +138,32 @@ Please type the number (1-6) of your choice.`)
         const age = Math.floor((new Date() - dob) / (365.25 * 24 * 60 * 60 * 1000))
         setUserData(prev => ({ ...prev, dateOfBirth: input, age }))
         setConversationState('register_gender')
-        addBotMessage('⚧ Please enter your Gender (Male/Female/Other):')
+        addBotMessage(`⚧ ${t('reg.askGender')}`)
         break
       case 'register_gender':
         const gender = input.toLowerCase()
         if (!['male', 'female', 'other'].includes(gender)) {
-          addBotMessage('❌ Please enter Male, Female, or Other:')
+          addBotMessage(`❌ ${t('error.invalidGender')}`)
           return
         }
         setUserData(prev => ({ ...prev, gender: input }))
         setConversationState('register_phone')
-        addBotMessage('📱 Please enter your Mobile Number:')
+        addBotMessage(`📱 ${t('reg.askPhone')}`)
         break
       case 'register_phone':
         if (!/^[6-9]\d{9}$/.test(input)) {
-          addBotMessage('❌ Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9:')
+          addBotMessage(`❌ ${t('error.invalidPhone')}`)
           return
         }
         setUserData(prev => ({ ...prev, mobileNumber: input }))
-        setConversationState('register_aadhaar')
-        addBotMessage('🆔 Please enter your 12-digit Aadhaar Number:')
-        break
-      case 'register_aadhaar':
-        if (!/^\d{12}$/.test(input)) {
-          addBotMessage('❌ Please enter a valid 12-digit Aadhaar number:')
-          return
-        }
-        setUserData(prev => ({ ...prev, aadhaarNumber: input }))
         setConversationState('register_address')
-        addBotMessage('🏠 Please enter your Address:')
+        addBotMessage(`🏠 ${t('reg.askAddress')}`)
         break
       case 'register_address':
         setUserData(prev => ({ ...prev, address: input, city: 'Bhopal' }))
         setConversationState('register_department')
-        addBotMessage(`🏥 Please select your Department:
-1️⃣ Cardiology
-2️⃣ Orthopedics
-3️⃣ Neurology
-4️⃣ Pediatrics
-5️⃣ General Medicine
-
-Please type the number (1-5) of your choice:`)
+        addBotMessage(`🏥 ${t('reg.askDept')}
+${t('reg.askDept.list')}`)
         break
       case 'register_department':
         const departments = {
@@ -191,7 +179,7 @@ Please type the number (1-5) of your choice:`)
         }
         setUserData(prev => ({ ...prev, department: departments[input] }))
         setConversationState('register_hospital')
-        addBotMessage('🏨 Please enter your Hospital Name:')
+        addBotMessage(`🏨 ${t('reg.askHospital')}`)
         break
       case 'register_hospital':
         await completeRegistration(input)
@@ -638,9 +626,11 @@ For more assistance, please visit our reception desk.`)
         handleMainMenu(input)
         break
       case 'register_name':
+      case 'register_dob':
       case 'register_age':
       case 'register_gender':
       case 'register_phone':
+      case 'register_address':
       case 'register_department':
       case 'register_hospital':
         await handleRegistration(input)

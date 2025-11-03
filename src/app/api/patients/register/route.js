@@ -10,7 +10,7 @@ export async function POST(request) {
     // Validate required fields
     const requiredFields = [
       'fullName', 'dateOfBirth', 'age', 'gender', 'mobileNumber', 
-      'aadhaarNumber', 'address', 'city', 'hospitalName', 'department'
+      'address', 'city', 'hospitalName', 'department'
     ];
 
     for (const field of requiredFields) {
@@ -34,17 +34,7 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // Check if Aadhaar number already exists
-    const existingAadhaar = await db.collection("patients_profile").findOne({ 
-      aadhaarNumber: patientData.aadhaarNumber 
-    });
-
-    if (existingAadhaar) {
-      return NextResponse.json({ 
-        success: false, 
-        message: "Patient with this Aadhaar number already exists" 
-      }, { status: 400 });
-    }
+    // Aadhaar is optional now; remove uniqueness constraint
 
     // Determine hospital coordinates for patient profile
     let hospitalCoordinates = patientData.hospitalCoordinates;
@@ -87,12 +77,14 @@ export async function POST(request) {
         createdAt: new Date()
       });
 
-      // Save to patients_aadhaar collection for Aadhaar lookup
-      await db.collection("patients_aadhaar").insertOne({ 
-        aadhaarNumber: patientData.aadhaarNumber,
-        patientId: patient.patientId,
-        createdAt: new Date()
-      });
+      // If Aadhaar is provided, optionally store for lookup (not required)
+      if (patientData.aadhaarNumber) {
+        await db.collection("patients_aadhaar").insertOne({ 
+          aadhaarNumber: patientData.aadhaarNumber,
+          patientId: patient.patientId,
+          createdAt: new Date()
+        });
+      }
 
       // Save hospital location data
       await db.collection("hospital_locations").insertOne({

@@ -34,17 +34,20 @@ export async function POST(request) {
     if (action === 'checkMobile') {
       // Check if mobile number exists
       const existingPatient = await db.collection("patients_mobileNumbers").findOne({ mobileNumber });
-      
-      if (existingPatient) {
-        // Get patient profile
-        const patientProfile = await db.collection("patients_profile").findOne({ mobileNumber });
-        return NextResponse.json({ 
-          exists: true, 
-          patient: patientProfile 
-        });
-      } else {
-        return NextResponse.json({ exists: false });
+      // Fetch profile in any case
+      const patientProfile = await db.collection("patients_profile").findOne({ mobileNumber });
+
+      if (existingPatient && patientProfile) {
+        return NextResponse.json({ exists: true, patient: patientProfile });
       }
+
+      // If mapping exists but profile missing, treat as not existing (dangling mapping)
+      if (existingPatient && !patientProfile) {
+        try {
+          await db.collection("patients_mobileNumbers").deleteOne({ mobileNumber });
+        } catch {}
+      }
+      return NextResponse.json({ exists: false });
     }
 
     if (action === 'createPatient') {
