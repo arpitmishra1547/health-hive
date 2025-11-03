@@ -78,6 +78,14 @@ export default function PatientRegistration() {
   
   const [filteredCities, setFilteredCities] = useState(["Delhi", "Mumbai", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Ahmedabad", "Jaipur", "Lucknow", "Bhopal", "Indore", "Surat", "Kanpur", "Nagpur", "Visakhapatnam", "Patna", "Vadodara", "Ludhiana", "Coimbatore"])
 
+  // Doctors data for department and alternative selection
+  const [deptDoctors, setDeptDoctors] = useState([])
+  const [showDoctorChoice, setShowDoctorChoice] = useState(false)
+  const [alternativeDoctors, setAlternativeDoctors] = useState([])
+  const [selectedAlternativeId, setSelectedAlternativeId] = useState("")
+  const [selectedDoctorStatus, setSelectedDoctorStatus] = useState("")
+  const [patientWillingToWait, setPatientWillingToWait] = useState(false)
+
   // Check for pending mobile number from login
   useEffect(() => {
     const pendingMobile = localStorage.getItem('pendingMobileNumber')
@@ -149,6 +157,12 @@ export default function PatientRegistration() {
     setHospitals(hospitalsByCity[city] || [])
     setHospitalCoordinates(null)
     setCoordinatesError("")
+    setDeptDoctors([])
+    setShowDoctorChoice(false)
+    setAlternativeDoctors([])
+    setSelectedAlternativeId("")
+    setSelectedDoctorStatus("")
+    setPatientWillingToWait(false)
   }
 
   // Get hospital coordinates using Google Places API
@@ -252,6 +266,25 @@ export default function PatientRegistration() {
   const nextStep = () => {
     if (currentStep < 5) setCurrentStep(currentStep + 1)
   }
+  // Load doctors when department changes
+  useEffect(() => {
+    async function loadDeptDoctors() {
+      if (!formData.department) { setDeptDoctors([]); return }
+      try {
+        const res = await fetch(`/api/doctors?department=${encodeURIComponent(formData.department)}`)
+        const data = await res.json()
+        if (data.success) setDeptDoctors(data.doctors)
+      } catch {}
+    }
+    loadDeptDoctors()
+    // reset selection state when department changes
+    setShowDoctorChoice(false)
+    setAlternativeDoctors([])
+    setSelectedAlternativeId("")
+    setSelectedDoctorStatus("")
+    setPatientWillingToWait(false)
+  }, [formData.department])
+
 
   const prevStep = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1)
@@ -277,7 +310,20 @@ export default function PatientRegistration() {
         patientId,
         hospitalCoordinates: hospitalCoordinates,
         registrationDate: new Date().toISOString(),
-        status: "Registered"
+        status: "waiting",
+        type: "normal"
+      }
+
+      // Preferred doctor assignment logic (inline UI already handled waiting/alternative selection)
+      if (formData.preferredDoctor) {
+        const doc = deptDoctors.find(d => d.name?.toLowerCase() === formData.preferredDoctor.toLowerCase())
+        const st = (doc?.status === 'Active') ? 'available' : (doc?.status || '')
+        const isAvailable = st === 'available'
+        if (doc && isAvailable) {
+          registrationData.assignedDoctorId = doc.doctorId
+          registrationData.assignedDoctorName = doc.name
+        }
+        // If busy/emergency and patient chose to wait, we proceed without assigning
       }
 
       const response = await fetch('/api/patients', {
@@ -814,13 +860,116 @@ export default function PatientRegistration() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Doctor</label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                     value={formData.preferredDoctor}
-                    onChange={(e) => handleInputChange("preferredDoctor", e.target.value)}
-                    placeholder="Doctor name (optional)"
-                  />
+                    onChange={(e) => {
+                      const val = e.target.value
+                      handleInputChange("preferredDoctor", val)
+                      const doc = deptDoctors.find(d => (d.name === val))
+                      const normalized = (doc?.status === 'Active') ? 'available' : (doc?.status || '')
+                      setSelectedDoctorStatus(normalized)
+                      setPatientWillingToWait(false)
+                      if (normalized === 'busy' || normalized === 'emergency') {
+                        const avail = deptDoctors.filter(d => {
+                          const st = d.status === 'Active' ? 'available' : (d.status || '')
+                          return st === 'available' && d.name !== val
+                        })
+                        setAlternativeDoctors(avail)
+                        setShowDoctorChoice(true)
+                      } else {
+                        setShowDoctorChoice(false)
+                        setAlternativeDoctors([])
+                        setSelectedAlternativeId("")
+                      }
+                    }}
+                  >
+                    <option value="">Select preferred doctor (optional)</option>
+                    {deptDoctors.map((d) => {
+                      const st = d.status === 'Active' ? 'available' : (d.status || 'available')
+                      return (
+                        <option key={d.doctorId} value={d.name}>{`${d.name} - [${st}]`}</option>
+                      )
+                    })}
+                  </select>
+
+                  {(selectedDoctorStatus === 'busy' || selectedDoctorStatus === 'emergency') && (
+                    <div className="mt-3 p-3 border rounded-lg bg-yellow-50">
+                      <div className="text-sm text-yellow-800 mb-2">
+                        {selectedDoctorStatus === 'emergency' ? 'Your selected doctor is currently handling an emergency.' : 'Your selected doctor is currently busy.'}
+                        {" "}You can wait or choose another available doctor.
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => { setPatientWillingToWait(true); setShowDoctorChoice(false) }}
+                        >
+                          I will wait
+                        </Button>
+                        <Button
+                          onClick={() => { setPatientWillingToWait(false); setShowDoctorChoice(true) }}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          Choose another doctor
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {showDoctorChoice && alternativeDoctors.length > 0 && (
+                    <div className="mt-3 p-3 border rounded-lg bg-blue-50">
+                      <div className="text-sm text-blue-800 mb-2">Available doctors:</div>
+                      <div className="flex gap-2">
+                        <select
+                          className="flex-1 px-3 py-2 border rounded bg-white"
+                          value={selectedAlternativeId}
+                          onChange={(e) => setSelectedAlternativeId(e.target.value)}
+                        >
+                          <option value="">Select doctor</option>
+                          {alternativeDoctors.map((d) => (
+                            <option key={d.doctorId} value={d.doctorId}>{d.name}</option>
+                          ))}
+                        </select>
+                        <Button
+                          onClick={async () => {
+                            if (!selectedAlternativeId) return
+                            const chosen = alternativeDoctors.find(d => d.doctorId === selectedAlternativeId)
+                            const registrationData = {
+                              ...formData,
+                              assignedDoctorId: chosen?.doctorId,
+                              assignedDoctorName: chosen?.name,
+                              patientId: formData.patientId || generatePatientId(),
+                              hospitalCoordinates: hospitalCoordinates,
+                              registrationDate: new Date().toISOString(),
+                              status: "waiting",
+                              type: "normal"
+                            }
+                            setLoading(true)
+                            const resp = await fetch('/api/patients', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                action: 'createPatient',
+                                mobileNumber: formData.mobileNumber,
+                                patientData: registrationData
+                              })
+                            })
+                            const data = await resp.json()
+                            setLoading(false)
+                            if (data.success) {
+                              setRegistrationSuccess(true)
+                              localStorage.setItem('patientData', JSON.stringify(registrationData))
+                            } else {
+                              setError(data.message || 'Registration failed. Please try again.')
+                            }
+                          }}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          Assign and Continue
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               

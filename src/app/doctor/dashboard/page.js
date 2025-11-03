@@ -29,6 +29,7 @@ import {
   Eye,
   Edit
 } from "lucide-react"
+import { formatDateUTC, formatTimeUTC } from "@/lib/format"
 
 export default function DoctorDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard")
@@ -45,6 +46,15 @@ export default function DoctorDashboard() {
     notes: ""
   })
   const [showAnalytics, setShowAnalytics] = useState(true)
+  const [assignedPatients, setAssignedPatients] = useState([])
+  const [waitingEmergency, setWaitingEmergency] = useState([])
+  const [waitingNormal, setWaitingNormal] = useState([])
+
+  // Queues state
+  const [queue, setQueue] = useState({ emergencyQueue: [], normalQueue: [], currentEmergency: null })
+  const [queueLoading, setQueueLoading] = useState(false)
+  const [emergencyFlash, setEmergencyFlash] = useState(false)
+  const [lastEmergencyCount, setLastEmergencyCount] = useState(0)
 
   // Mock patient data
   const mockPatient = {
@@ -113,6 +123,85 @@ export default function DoctorDashboard() {
       window.location.href = '/doctor/login'
     }
   }, [])
+
+  // Poll queues for this doctor
+  useEffect(() => {
+    let timer
+    async function fetchQueue() {
+      if (!doctorInfo?.doctorId) return
+      try {
+        setQueueLoading(true)
+        const res = await fetch(`/api/queue?doctorId=${encodeURIComponent(doctorInfo.doctorId)}`)
+        const data = await res.json()
+        if (data?.success) {
+          setQueue(data.queue)
+          const currentCount = (data.queue?.emergencyQueue || []).length + (data.queue?.currentEmergency ? 1 : 0)
+          if (currentCount > lastEmergencyCount) {
+            setEmergencyFlash(true)
+            setTimeout(() => setEmergencyFlash(false), 2500)
+          }
+          setLastEmergencyCount(currentCount)
+        }
+      } catch (e) {
+      } finally {
+        setQueueLoading(false)
+      }
+    }
+    fetchQueue()
+    timer = setInterval(fetchQueue, 4000)
+    return () => { if (timer) clearInterval(timer) }
+  }, [doctorInfo?.doctorId, lastEmergencyCount])
+
+  // Load assigned patients for this doctor
+  useEffect(() => {
+    async function fetchAssigned() {
+      if (!doctorInfo?.doctorId) return
+      try {
+        const res = await fetch(`/api/patients?assignedDoctorId=${encodeURIComponent(doctorInfo.doctorId)}&status=waiting`)
+        const data = await res.json()
+        if (data?.success) {
+          setAssignedPatients(data.patients || [])
+          const emergency = (data.patients || []).filter(p => (p.type === 'emergency'))
+          const normal = (data.patients || []).filter(p => (p.type !== 'emergency'))
+          setWaitingEmergency(emergency)
+          setWaitingNormal(normal)
+        }
+      } catch {}
+    }
+    fetchAssigned()
+    const t = setInterval(fetchAssigned, 4000)
+    return () => clearInterval(t)
+  }, [doctorInfo?.doctorId])
+
+  async function completePatient(mobileNumber) {
+    if (!mobileNumber) return
+    try {
+      await fetch('/api/patients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'updatePatient',
+          mobileNumber,
+          patientData: { status: 'completed' }
+        })
+      })
+    } catch {}
+  }
+
+  async function startEmergency() {
+    if (!doctorInfo?.doctorId) return
+    await fetch('/api/queue', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'startEmergency', doctorId: doctorInfo.doctorId }) })
+  }
+
+  async function resolveEmergency() {
+    if (!doctorInfo?.doctorId) return
+    await fetch('/api/queue', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'resolveEmergency', doctorId: doctorInfo.doctorId }) })
+  }
+
+  async function serveNextNormal() {
+    if (!doctorInfo?.doctorId) return
+    await fetch('/api/queue', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'dequeueNormal', doctorId: doctorInfo.doctorId }) })
+  }
 
   const handleTokenSubmit = async () => {
     if (!tokenInput.trim()) {
@@ -330,6 +419,105 @@ export default function DoctorDashboard() {
 
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-4 lg:space-y-8">
+            {/* Emergency & Normal Queues */}
+            <Card className={`backdrop-blur-sm border-0 shadow-xl ${emergencyFlash ? 'animate-pulse ring-2 ring-red-500' : 'bg-white/80'}`}>
+              <CardHeader>
+                <CardTitle className="flex items-center text-xl">
+                  <AlertTriangle className="w-5 h-5 mr-2 text-red-600" />
+                  Queue Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {emergencyFlash && (
+                  <div className="mb-4 px-4 py-3 rounded border border-red-300 bg-red-50 text-red-700 text-sm">
+                    🚨 Emergency case arrived — review now.
+                  </div>
+                )}
+                <div className="grid md:grid-cols-2 gap-4">
+                  {/* Emergency Column */}
+                  <div className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-700">Emergency</span>
+                        {queueLoading && <span className="text-xs text-gray-500">Updating...</span>}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {!queue.currentEmergency && (queue.emergencyQueue?.length > 0) && (
+                          <Button size="sm" className="bg-red-600 hover:bg-red-700" onClick={startEmergency}>Start</Button>
+                        )}
+                        {queue.currentEmergency && (
+                          <Button size="sm" variant="outline" className="border-red-600 text-red-700" onClick={resolveEmergency}>Resolve</Button>
+                        )}
+                      </div>
+                    </div>
+                    {queue.currentEmergency && (
+                      <div className="mb-3 p-3 rounded-lg border-2 border-red-400 bg-red-50">
+                        <div className="text-sm text-red-700 font-semibold">Current Emergency</div>
+                        <div className="text-gray-900 text-sm">Ticket: {queue.currentEmergency.ticketId}</div>
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      {(queue.emergencyQueue || []).length === 0 && !queue.currentEmergency && (
+                        <div className="text-sm text-gray-500">No emergency patients waiting</div>
+                      )}
+                      {(queue.emergencyQueue || []).map((p) => (
+                        <div key={p.ticketId} className="p-2 rounded border bg-white">
+                          <div className="flex justify-between text-sm">
+                            <span className="font-medium">{p.patientName}</span>
+                            <span className="text-red-600 font-mono">{p.ticketId.slice(-6)}</span>
+                          </div>
+                          {p.emergencyReason && (
+                            <div className="text-xs text-red-700 mt-1">Reason: {p.emergencyReason}</div>
+                          )}
+                          {p.emergencyVerified && (
+                            <div className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded bg-red-100 text-red-700">Verified Emergency</div>
+                          )}
+                          {p.emergencyAttachment?.dataUrl && (
+                            <div className="mt-1 text-xs">
+                              <a href={p.emergencyAttachment.dataUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline">View Attachment</a>
+                            </div>
+                          )}
+                          <div className="text-xs text-gray-500">{formatTimeUTC(p.createdAt)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Normal Column */}
+                  <div className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded bg-gray-100 text-gray-700">Normal</span>
+                        {queueLoading && <span className="text-xs text-gray-500">Updating...</span>}
+                      </div>
+                      <div>
+                        <Button size="sm" onClick={serveNextNormal} disabled={!!queue.currentEmergency || (queue.emergencyQueue?.length > 0)}>
+                          Serve Next
+                        </Button>
+                      </div>
+                    </div>
+                    { (!!queue.currentEmergency || (queue.emergencyQueue?.length > 0)) && (
+                      <div className="mb-2 text-xs text-orange-700 bg-orange-50 border border-orange-200 rounded px-3 py-2">
+                        Normal queue paused: handling emergency
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      {(queue.normalQueue || []).length === 0 && (
+                        <div className="text-sm text-gray-500">No normal patients waiting</div>
+                      )}
+                      {(queue.normalQueue || []).map((p) => (
+                        <div key={p.ticketId} className="p-2 rounded border bg-white">
+                          <div className="flex justify-between text-sm">
+                            <span className="font-medium">{p.patientName}</span>
+                            <span className="text-gray-600 font-mono">{p.ticketId.slice(-6)}</span>
+                          </div>
+                          <div className="text-xs text-gray-500">{formatTimeUTC(p.createdAt)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             {/* Token Input Section */}
             <Card className="backdrop-blur-sm bg-white/80 border-0 shadow-xl">
               <CardHeader>
@@ -391,7 +579,7 @@ export default function DoctorDashboard() {
                       </div>
                       <div className="text-right">
                         <div className="text-sm text-gray-500">Visit Date</div>
-                        <div className="text-gray-900 font-medium">{new Date().toLocaleDateString()}</div>
+                        <div className="text-gray-900 font-medium">{formatDateUTC(new Date())}</div>
                       </div>
                     </div>
 
@@ -673,6 +861,8 @@ export default function DoctorDashboard() {
                 </CardContent>
               </Card>
             )}
+
+            
 
             {/* Analytics Section */}
             <Card className="backdrop-blur-sm bg-white/80 border-0 shadow-xl">

@@ -53,6 +53,112 @@ export default function SmartHospitalLandingPage() {
     return () => observer.disconnect()
   }, [])
 
+  // Quick queue registration (Normal/Emergency) on main page
+  const [doctors, setDoctors] = useState([])
+  const [regName, setRegName] = useState("")
+  const [regMobile, setRegMobile] = useState("")
+  const [age, setAge] = useState("")
+  const [gender, setGender] = useState("")
+  const [city, setCity] = useState("")
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false)
+  const [filteredCities, setFilteredCities] = useState([])
+  const [hospitals, setHospitals] = useState([])
+  const [hospitalId, setHospitalId] = useState("")
+  const [hospitalName, setHospitalName] = useState("")
+  const [emergencyType, setEmergencyType] = useState("")
+  const [emergencyReason, setEmergencyReason] = useState("")
+  const [preferredDoctorId, setPreferredDoctorId] = useState("")
+  const [emergencyDoc, setEmergencyDoc] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitMsg, setSubmitMsg] = useState("")
+
+  useEffect(() => {
+    let mounted = true
+    fetch('/api/doctors')
+      .then(r => r.json())
+      .then(data => {
+        if (!mounted) return
+        if (data?.success && Array.isArray(data.doctors)) {
+          setDoctors(data.doctors)
+        }
+      })
+      .catch(() => {})
+    return () => { mounted = false }
+  }, [])
+
+  const cityOptions = ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Kolkata", "Chennai", "Pune"]
+
+  useEffect(() => {
+    let aborted = false
+    async function loadHospitals() {
+      if (!city) { setHospitals([]); setHospitalId(""); setHospitalName(""); return }
+      try {
+        const res = await fetch(`/api/places?city=${encodeURIComponent(city)}`)
+        const data = await res.json()
+        if (!aborted && data?.success) {
+          setHospitals(data.hospitals || [])
+        }
+      } catch {}
+    }
+    loadHospitals()
+    return () => { aborted = true }
+  }, [city])
+
+  async function submitQuickRegistration(e) {
+    e?.preventDefault?.()
+    setSubmitting(true)
+    setSubmitMsg("")
+    try {
+      const form = new FormData()
+      form.append('action', 'enqueue')
+      // for queue handling, doctorId is required; use preferredDoctorId if picked, else fall back to first doctor
+      const targetDoctorId = preferredDoctorId || (doctors[0]?.doctorId || '')
+      if (!targetDoctorId) {
+        setSubmitMsg('No doctors available. Please select Preferred Doctor or add doctors first.')
+        setSubmitting(false)
+        return
+      }
+      form.append('doctorId', targetDoctorId)
+      form.append('patientName', regName)
+      form.append('mobileNumber', regMobile)
+      form.append('emergency', 'true')
+      if (age) form.append('age', String(age))
+      if (gender) form.append('gender', gender)
+      if (city) form.append('city', city)
+      if (hospitalId) form.append('hospitalId', hospitalId)
+      if (hospitalName) form.append('hospitalName', hospitalName)
+      if (emergencyType) form.append('emergencyType', emergencyType)
+      if (preferredDoctorId) form.append('preferredDoctorId', preferredDoctorId)
+      if (emergencyReason) form.append('emergencyReason', emergencyReason)
+      if (emergencyDoc) form.append('emergencyDoc', emergencyDoc)
+      const res = await fetch('/api/queue', { method: 'POST', body: form })
+      const data = await res.json()
+      if (data?.success) {
+        setSubmitMsg('Emergency ticket created successfully.')
+        // Check doctor emergency status for optional notice
+        // Skip showing any busy notice in emergency join flow
+        setRegName("")
+        setRegMobile("")
+        setAge("")
+        setGender("")
+        setCity("")
+        setHospitals([])
+        setHospitalId("")
+        setHospitalName("")
+        setEmergencyType("")
+        setEmergencyReason("")
+        setPreferredDoctorId("")
+        setEmergencyDoc(null)
+      } else {
+        setSubmitMsg(data?.message || 'Failed to submit. Please try again.')
+      }
+    } catch (err) {
+      setSubmitMsg(err?.message || 'Network error. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -72,6 +178,9 @@ export default function SmartHospitalLandingPage() {
               </a>
               <a href="#services" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
                 {t('nav.services')}
+              </a>
+              <a href="#emergency" className="text-red-600 hover:text-red-700 font-medium transition-colors">
+                {t('nav.emergency')}
               </a>
               <a href="/chatbot" className="text-green-600 hover:text-green-700 font-medium transition-colors flex items-center gap-1">
                 <MessageCircle className="w-4 h-4" />
@@ -123,6 +232,9 @@ export default function SmartHospitalLandingPage() {
                 </a>
                 <a href="#services" className="text-gray-600 hover:text-blue-600 font-medium">
                   {t('nav.services')}
+                </a>
+                <a href="#emergency" className="text-red-600 hover:text-red-700 font-medium">
+                  {t('nav.emergency')}
                 </a>
                 <a href="/chatbot" className="text-green-600 hover:text-green-700 font-medium flex items-center gap-2">
                   <MessageCircle className="w-4 h-4" />
@@ -179,6 +291,123 @@ export default function SmartHospitalLandingPage() {
               </Button>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Quick Queue Registration (Emergency Handling) */}
+      <section id="emergency" className="py-16 bg-white border-t">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 text-center">
+            <h2 className="text-3xl font-bold text-gray-900">{t('emergency.title')}</h2>
+            <p className="text-gray-600 mt-2">{t('emergency.subtitle')}</p>
+          </div>
+          <form onSubmit={submitQuickRegistration} className="bg-white rounded-xl border shadow-sm p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('emergency.fullName')}</label>
+              <input value={regName} onChange={e => setRegName(e.target.value)} required placeholder={t('emergency.fullName')} className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('emergency.mobile')}</label>
+              <input value={regMobile} onChange={e => setRegMobile(e.target.value)} required placeholder={t('emergency.mobile')} className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('emergency.age')}</label>
+              <input type="number" min="0" max="120" value={age} onChange={e => setAge(e.target.value)} required placeholder="36" className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('emergency.gender')}</label>
+              <select value={gender} onChange={e => setGender(e.target.value)} required className="w-full border rounded-md px-3 py-2 bg-white">
+                <option value="" disabled>{t('emergency.genderSelect')}</option>
+                <option value="Male">{t('emergency.genderMale')}</option>
+                <option value="Female">{t('emergency.genderFemale')}</option>
+                <option value="Other">{t('emergency.genderOther')}</option>
+              </select>
+            </div>
+            <div className="relative">
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('emergency.city')}</label>
+              <input
+                type="text"
+                value={city}
+                onChange={(e) => {
+                  const val = e.target.value
+                  setCity(val)
+                  const filtered = cityOptions.filter(c => c.toLowerCase().includes(val.toLowerCase()))
+                  setFilteredCities(filtered)
+                  setShowCitySuggestions(val.length > 0 && filtered.length > 0)
+                }}
+                onFocus={() => {
+                  if (city) {
+                    const filtered = cityOptions.filter(c => c.toLowerCase().includes(city.toLowerCase()))
+                    setFilteredCities(filtered)
+                    setShowCitySuggestions(filtered.length > 0)
+                  }
+                }}
+                onBlur={() => setTimeout(() => setShowCitySuggestions(false), 150)}
+                required
+                placeholder={t('emergency.citySelect')}
+                className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {showCitySuggestions && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                  {filteredCities.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className="w-full text-left px-3 py-2 hover:bg-blue-50"
+                      onClick={() => { setCity(c); setShowCitySuggestions(false) }}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('emergency.hospital')}</label>
+              <select value={hospitalId} onChange={e => { setHospitalId(e.target.value); const h = hospitals.find(hh => hh.id === e.target.value); setHospitalName(h?.name || "") }} required className="w-full border rounded-md px-3 py-2 bg-white">
+                <option value="" disabled>{city ? t('emergency.hospitalSelect') : t('emergency.cityFirst')}</option>
+                {hospitals.map(h => (<option key={h.id} value={h.id}>{h.name}</option>))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('emergency.type')}</label>
+              <select value={emergencyType} onChange={e => setEmergencyType(e.target.value)} required className="w-full border rounded-md px-3 py-2 bg-white">
+                <option value="" disabled>{t('emergency.typeSelect')}</option>
+                <option value="Accident">{t('emergency.type.accident')}</option>
+                <option value="Chest Pain">{t('emergency.type.chestPain')}</option>
+                <option value="Unconscious">{t('emergency.type.unconscious')}</option>
+                <option value="Other">{t('emergency.type.other')}</option>
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('emergency.description')}</label>
+              <textarea value={emergencyReason} onChange={e => setEmergencyReason(e.target.value)} required rows={3} placeholder={t('emergency.descriptionPlaceholder')} className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('emergency.preferredDoctor')}</label>
+              <select value={preferredDoctorId} onChange={e => setPreferredDoctorId(e.target.value)} className="w-full border rounded-md px-3 py-2 bg-white">
+                <option value="">{t('emergency.noPreference')}</option>
+                {doctors.map(d => (
+                  <option key={d.doctorId || d._id} value={d.doctorId}>{d.name} {d.specialization ? `- ${d.specialization}` : ''}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('emergency.fileUpload')}</label>
+              <input type="file" accept="image/*,application/pdf" onChange={e => setEmergencyDoc(e.target.files?.[0] || null)} className="w-full" />
+              <p className="text-xs text-gray-500 mt-1">{t('emergency.fileHelp')}</p>
+            </div>
+            <div className="md:col-span-2 flex justify-end">
+              <Button type="submit" disabled={submitting || !regName || !regMobile || !age || !gender || !city || !hospitalId || !emergencyType || !emergencyReason || !(preferredDoctorId || (doctors[0]?.doctorId || ''))} className="bg-blue-600 hover:bg-blue-700 text-white">
+                {submitting ? t('emergency.submitting') : t('emergency.submit')}
+              </Button>
+            </div>
+            {submitMsg && (
+              <div className="md:col-span-2 space-y-2">
+                <div className="px-4 py-2 rounded bg-blue-50 text-blue-700 border border-blue-200">{submitMsg}</div>
+              </div>
+            )}
+          </form>
         </div>
       </section>
 

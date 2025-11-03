@@ -16,6 +16,7 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, BarChart, Bar, Legend, CartesianGrid } from "recharts"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { formatDateUTC } from "@/lib/format"
 
 const COLORS = ["#007bff", "#28a745", "#10b981", "#60a5fa", "#34d399", "#f59e0b"]
 
@@ -966,8 +967,8 @@ function AuthorityDashboardPage() {
                               </td>
                               <td className="py-3 px-2">{patient.mobileNumber || 'N/A'}</td>
                               <td className="py-3 px-2">
-                                {patient.registrationDate ? new Date(patient.registrationDate).toLocaleDateString() : 
-                                 patient.createdAt ? new Date(patient.createdAt).toLocaleDateString() : 'N/A'}
+                                {patient.registrationDate ? formatDateUTC(patient.registrationDate) : 
+                                 patient.createdAt ? formatDateUTC(patient.createdAt) : 'N/A'}
                               </td>
                               <td className="py-3 px-2">
                                 <span className={`px-2 py-1 rounded-full text-xs ${
@@ -1091,7 +1092,7 @@ function AuthorityDashboardPage() {
                                   {prescription.doctorName || 'Dr. Unknown'}
                                 </span>
                                 <span className="text-xs text-gray-500">
-                                  {prescription.createdAt ? new Date(prescription.createdAt).toLocaleDateString() : 'N/A'}
+                                  {prescription.createdAt ? formatDateUTC(prescription.createdAt) : 'N/A'}
                                 </span>
                               </div>
                               <div className="text-sm text-gray-700 mb-2">
@@ -1561,7 +1562,7 @@ function AuthorityDashboardPage() {
                             </div>
                             <div className="flex items-center gap-2">
                               <Calendar className="w-4 h-4 text-gray-500" />
-                              <span>{new Date(schedule.date).toLocaleDateString()}</span>
+                              <span>{formatDateUTC(schedule.date)}</span>
                             </div>
                             {schedule.isRecurring && (
                               <div className="flex items-center gap-2">

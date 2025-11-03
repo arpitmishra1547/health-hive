@@ -14,12 +14,24 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const department = searchParams.get('department');
+    const doctorId = searchParams.get('doctorId');
+    const status = searchParams.get('status'); // expected: available | busy | emergency
 
     const client = await clientPromise;
     const db = client.db('hospital-management');
     await ensureIndexes(db);
 
-    const query = department ? { department } : {};
+    const query = {};
+    if (department) query.department = department;
+    if (doctorId) query.doctorId = doctorId;
+    if (status) {
+      // Backward compatibility: treat 'Active' as 'available'
+      if (status === 'available') {
+        query.status = { $in: ['available', 'Active'] };
+      } else {
+        query.status = status;
+      }
+    }
     const doctors = await db.collection('doctors_list').find(query, {
       projection: {
         _id: 0,
@@ -94,6 +106,24 @@ export async function POST(request) {
       }
       const res = await db.collection('doctors_list').deleteOne({ doctorId });
       if (res.deletedCount === 0) {
+        return NextResponse.json({ success: false, message: 'Doctor not found' }, { status: 404 });
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === 'updateStatus') {
+      const { doctorId, status } = payload;
+      if (!doctorId || !status) {
+        return NextResponse.json({ success: false, message: 'doctorId and status are required' }, { status: 400 });
+      }
+      if (!['available','busy','emergency','Active'].includes(status)) {
+        return NextResponse.json({ success: false, message: 'Invalid status' }, { status: 400 });
+      }
+      const res = await db.collection('doctors_list').updateOne(
+        { doctorId },
+        { $set: { status, updatedAt: new Date() } }
+      );
+      if (res.matchedCount === 0) {
         return NextResponse.json({ success: false, message: 'Doctor not found' }, { status: 404 });
       }
       return NextResponse.json({ success: true });

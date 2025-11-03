@@ -3,12 +3,20 @@ import clientPromise from '@/lib/mongodb';
 
 export async function GET(request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const assignedDoctorId = searchParams.get('assignedDoctorId');
+    const status = searchParams.get('status'); // e.g., waiting, completed
+    const type = searchParams.get('type'); // e.g., normal, emergency
     const client = await clientPromise;
     const db = client.db("hospital-management");
 
-    // Fetch all patients from the patients_profile collection
+    // Fetch patients from the patients_profile collection
+    const query = {};
+    if (assignedDoctorId) query.assignedDoctorId = assignedDoctorId;
+    if (status) query.status = status;
+    if (type) query.type = type;
     const patients = await db.collection("patients_profile")
-      .find({}, { projection: { _id: 0 } })
+      .find(query, { projection: { _id: 0 } })
       .sort({ createdAt: -1 })
       .toArray();
 
