@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
+import { encrypt } from '@/lib/crypto'
 import { Buffer } from 'buffer';
 
 // Collection: queues
@@ -127,7 +128,7 @@ export async function POST(request) {
         mobileNumber, 
         createdAt: new Date(),
         type: emergency ? 'emergency' : 'normal',
-        emergencyReason,
+        emergencyReason: emergency ? encrypt(emergencyReason || '') : emergencyReason,
         emergencyVerified,
         emergencyAttachment,
         age,

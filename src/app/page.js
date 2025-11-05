@@ -26,6 +26,7 @@ import {
 import { useState, useEffect } from "react"
 import { useTranslation } from 'react-i18next'
 import Image from 'next/image'
+import LanguageSwitcher from "@/components/LanguageSwitcher"
 
 export default function SmartHospitalLandingPage() {
   const { t } = useTranslation()
@@ -190,6 +191,8 @@ export default function SmartHospitalLandingPage() {
                 {t('nav.contact')}
               </a>
 
+              <LanguageSwitcher />
+
               <div className="relative">
                 <Button
                   onClick={() => setShowLoginOptions(!showLoginOptions)}
@@ -243,6 +246,9 @@ export default function SmartHospitalLandingPage() {
                 <a href="#contact" className="text-gray-600 hover:text-blue-600 font-medium">
                   {t('nav.contact')}
                 </a>
+                <div className="py-2">
+                  <LanguageSwitcher />
+                </div>
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white w-full">{t('nav.login')}</Button>
               </div>
             </div>

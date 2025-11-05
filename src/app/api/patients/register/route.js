@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
+import { encryptPatientFields, decryptPatientFields, encrypt } from '@/lib/crypto'
 
 export async function POST(request) {
   try {
@@ -22,9 +23,19 @@ export async function POST(request) {
       }
     }
 
-    // Check if mobile number already exists
+    // Check if mobile number already exists (need to check encrypted value)
+    // Try to encrypt the mobile number to check against encrypted records
+    let encryptedMobile = patientData.mobileNumber
+    try {
+      encryptedMobile = encrypt(patientData.mobileNumber)
+    } catch {}
+    
+    // Check both encrypted and unencrypted (for backward compatibility)
     const existingPatient = await db.collection("patients_profile").findOne({ 
-      mobileNumber: patientData.mobileNumber 
+      $or: [
+        { mobileNumber: patientData.mobileNumber },
+        { mobileNumber: encryptedMobile }
+      ]
     });
 
     if (existingPatient) {
@@ -56,7 +67,7 @@ export async function POST(request) {
 
     // Create patient document
     const patient = {
-      ...patientData,
+      ...encryptPatientFields(patientData),
       hospitalCoordinates: hospitalCoordinates,
       patientId: `P${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
       status: "Registered",
@@ -97,15 +108,18 @@ export async function POST(request) {
         createdAt: new Date()
       });
 
+      // Decrypt patient data for response (or return minimal data)
+      const decryptedPatient = decryptPatientFields(patient)
+      
       return NextResponse.json({ 
         success: true, 
         message: "Patient registered successfully",
         patient: {
-          patientId: patient.patientId,
-          fullName: patient.fullName,
-          mobileNumber: patient.mobileNumber,
-          status: patient.status,
-          tokenStatus: patient.tokenStatus
+          patientId: decryptedPatient.patientId,
+          fullName: decryptedPatient.fullName || patient.fullName,
+          mobileNumber: decryptedPatient.mobileNumber || patient.mobileNumber,
+          status: decryptedPatient.status || patient.status,
+          tokenStatus: decryptedPatient.tokenStatus || patient.tokenStatus
         }
       });
     } else {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
+import { encryptPatientFields, decryptPatientFields, SENSITIVE_PATIENT_FIELDS } from '@/lib/crypto'
 
 export async function GET(request) {
   try {
@@ -15,15 +16,15 @@ export async function GET(request) {
     if (assignedDoctorId) query.assignedDoctorId = assignedDoctorId;
     if (status) query.status = status;
     if (type) query.type = type;
-    const patients = await db.collection("patients_profile")
+    const patientsEncrypted = await db.collection("patients_profile")
       .find(query, { projection: { _id: 0 } })
       .sort({ createdAt: -1 })
       .toArray();
 
-    return NextResponse.json({ 
-      success: true, 
-      patients: patients 
-    });
+    // Decrypt sensitive fields before sending to client
+    const patients = patientsEncrypted.map(p => decryptPatientFields(p))
+
+    return NextResponse.json({ success: true, patients });
   } catch (error) {
     console.error('Failed to fetch patients:', error);
     return NextResponse.json({ 
@@ -79,7 +80,7 @@ export async function POST(request) {
 
       // Create new patient
       const patientProfile = {
-        ...patientData,
+        ...encryptPatientFields(patientData),
         hospitalCoordinates: hospitalCoordinates,
         mobileNumber,
         createdAt: new Date(),
@@ -139,7 +140,7 @@ export async function POST(request) {
     if (action === 'updatePatient') {
       // Update patient profile
       const updateData = {
-        ...patientData,
+        ...encryptPatientFields(patientData),
         updatedAt: new Date()
       };
 

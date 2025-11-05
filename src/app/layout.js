@@ -2,7 +2,6 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 import I18nProvider from "@/components/I18nProvider"
-import LanguageSwitcher from "@/components/LanguageSwitcher"
 
 export const metadata = {
   title: "MediCare Hospital - Management System",
@@ -24,9 +23,6 @@ html {
       </head>
       <body className="font-sans antialiased">
         <I18nProvider>
-          <div className="w-full flex justify-end p-3">
-            <LanguageSwitcher />
-          </div>
           {children}
         </I18nProvider>
       </body>
